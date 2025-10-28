@@ -1,5 +1,0 @@
-birefnet-coreml/
- ├── convert_birefnet.py
- └── .github/
-      └── workflows/
-           └── build_coreml.yml
