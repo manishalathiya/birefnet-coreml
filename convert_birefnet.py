@@ -5,10 +5,13 @@ from transformers import AutoModelForImageSegmentation
 MODEL_ID = "ZhengPeng7/BiRefNet_lite"
 
 print("🚀 Loading model:", MODEL_ID)
-model = AutoModelForImageSegmentation.from_pretrained(MODEL_ID)
+model = AutoModelForImageSegmentation.from_pretrained(
+    MODEL_ID,
+    trust_remote_code=True  # ✅ Allow custom BiRefNet code
+)
 model.eval()
 
-# Example input for tracing
+# Example input
 example_input = torch.rand(1, 3, 512, 512)
 
 print("⚡ Tracing model...")
@@ -20,7 +23,7 @@ mlmodel = ct.convert(
     traced,
     inputs=[ct.ImageType(name="input_image", shape=example_input.shape, scale=1/255.0)],
     convert_to="mlprogram",
-    compute_units=ct.ComputeUnit.ALL,  # Use Neural Engine, GPU, and CPU fallback
+    compute_units=ct.ComputeUnit.ALL,
 )
 
 # Optimize model precision for iOS
@@ -31,5 +34,4 @@ mlmodel = ct.models.neural_network.quantization_utils.quantize_weights(
 
 mlmodel.save("BiRefNetBackgroundRemoval.mlmodel")
 
-print("✅ Conversion and optimization complete.")
-print("📁 Saved as BiRefNetBackgroundRemoval.mlmodel")
+print("✅ Conversion complete — saved as BiRefNetBackgroundRemoval.mlmodel")
