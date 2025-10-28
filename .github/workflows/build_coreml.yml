@@ -1,0 +1,30 @@
+name: Build CoreML Model
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-13
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install coremltools==7.1 transformers==4.45.0 timm einops pillow numpy huggingface_hub
+
+      - name: Run conversion
+        run: python3 convert_birefnet.py
+
+      - name: Upload CoreML model
+        uses: actions/upload-artifact@v4
+        with:
+          name: BiRefNetBackgroundRemoval
+          path: BiRefNetBackgroundRemoval.mlmodel
