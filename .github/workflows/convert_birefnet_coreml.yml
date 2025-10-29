@@ -31,6 +31,7 @@ jobs:
           pip install torch torchvision torchaudio
           pip install coremltools==7.2
           pip install pillow transformers timm kornia einops
+          pip install hf_transfer   # ✅ Fix: Add this for Hugging Face fast download
 
       - name: Convert BiRefNet to CoreML
         run: |
