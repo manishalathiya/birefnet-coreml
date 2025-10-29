@@ -28,10 +28,10 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
+          pip install "numpy<2.0.0"   # ✅ Fix: ensure NumPy 1.x
           pip install torch torchvision torchaudio
           pip install coremltools==7.2
-          pip install pillow transformers timm kornia einops
-          pip install hf_transfer   # ✅ Fix: Add this for Hugging Face fast download
+          pip install pillow transformers timm kornia einops hf_transfer
 
       - name: Convert BiRefNet to CoreML
         run: |
