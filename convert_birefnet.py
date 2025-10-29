@@ -6,9 +6,10 @@ MODEL_ID = "ZhengPeng7/BiRefNet_lite"
 
 print("🚀 Loading model:", MODEL_ID)
 model = AutoModelForImageSegmentation.from_pretrained(
-    MODEL_ID,
-    trust_remote_code=True  # ✅ Allow custom BiRefNet code
+    "ZhengPeng7/BiRefNet_1K_Base",
+    trust_remote_code=True
 )
+
 model.eval()
 
 # Example input
