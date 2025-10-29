@@ -2,11 +2,11 @@ import torch
 import coremltools as ct
 from transformers import AutoModelForImageSegmentation
 
-MODEL_ID = "ZhengPeng7/BiRefNet_lite"
+MODEL_ID = "ZhengPeng7/BiRefNet_1K_Base"
 
 print("🚀 Loading model:", MODEL_ID)
 model = AutoModelForImageSegmentation.from_pretrained(
-    "ZhengPeng7/BiRefNet_1K_Base",
+    MODEL_ID,
     trust_remote_code=True
 )
 
