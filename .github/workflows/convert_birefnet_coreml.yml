@@ -1,32 +1,64 @@
-- name: Convert BiRefNet to CoreML
-  run: |
-    python3 - <<'EOF'
-    import torch
-    import coremltools as ct
-    from transformers import AutoModelForImageSegmentation
+name: Convert BiRefNet to CoreML
 
-    print("🚀 Loading BiRefNet 1K Base model (no deform_conv2d)...")
-    model = AutoModelForImageSegmentation.from_pretrained(
-        "ZhengPeng7/BiRefNet_1K_Base",
-        trust_remote_code=True
-    )
-    model.eval()
+on:
+  workflow_dispatch:
 
-    example_input = torch.rand(1, 3, 512, 512)
-    print("⚡ Tracing model...")
-    traced = torch.jit.trace(model, example_input)
-    traced.save("birefnet_base_traced.pt")
+jobs:
+  convert:
+    runs-on: ubuntu-latest
 
-    print("🧠 Converting to CoreML...")
-    mlmodel = ct.convert(
-        traced,
-        inputs=[ct.ImageType(name="input_image", shape=example_input.shape, scale=1/255.0)],
-        convert_to="mlprogram",
-        compute_units=ct.ComputeUnit.ALL,
-    )
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    print("📦 Optimizing precision (FP16)...")
-    mlmodel = ct.models.neural_network.quantization_utils.quantize_weights(mlmodel, nbits=16)
-    mlmodel.save("BiRefNetBackgroundRemoval.mlmodel")
-    print("✅ Done — BiRefNetBackgroundRemoval.mlmodel created successfully.")
-    EOF
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install torch torchvision transformers pillow coremltools numpy==1.26.4
+
+      - name: Convert BiRefNet to CoreML
+        run: |
+          python3 - <<'EOF'
+          import torch
+          import coremltools as ct
+          from transformers import AutoModelForImageSegmentation
+
+          print("🚀 Loading BiRefNet 1K Base model (CoreML-compatible)...")
+          model = AutoModelForImageSegmentation.from_pretrained(
+              "ZhengPeng7/BiRefNet_1K_Base",
+              trust_remote_code=True
+          )
+          model.eval()
+
+          print("⚡ Creating example input...")
+          example_input = torch.rand(1, 3, 512, 512)
+
+          print("🧠 Tracing model...")
+          traced_model = torch.jit.trace(model, example_input)
+          traced_model.save("birefnet_base_traced.pt")
+
+          print("💾 Converting to CoreML...")
+          mlmodel = ct.convert(
+              traced_model,
+              inputs=[ct.ImageType(name="input_image", shape=example_input.shape, scale=1/255.0)],
+              convert_to="mlprogram",
+              compute_units=ct.ComputeUnit.ALL,
+          )
+
+          print("📦 Optimizing precision (FP16)...")
+          mlmodel = ct.models.neural_network.quantization_utils.quantize_weights(mlmodel, nbits=16)
+          mlmodel.save("BiRefNetBackgroundRemoval.mlmodel")
+
+          print("✅ Done — BiRefNetBackgroundRemoval.mlmodel created successfully.")
+          EOF
+
+      - name: Upload CoreML Model
+        uses: actions/upload-artifact@v4
+        with:
+          name: BiRefNetBackgroundRemoval
+          path: BiRefNetBackgroundRemoval.mlmodel
